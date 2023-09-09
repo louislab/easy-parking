@@ -76,7 +76,7 @@ function genMapUrl(lat, lng) {
 }
 
 // get parking information
-function getParkingInfo() {
+async function getParkingInfo() {
     const http_info = new XMLHttpRequest();
     const url_info = 'https://api.data.gov.hk/v1/carpark-info-vacancy?data=info&lang=zh_TW';
     let info;
@@ -170,5 +170,5 @@ function privateCarHandler(info, vacancy) {
 
 getGeoLocation();
 getParkingInfo();
-// update parking info every 1 minute
-setInterval(getParkingInfo, 60000);
+// update parking info every 15 seconds
+setInterval(getParkingInfo, 15000);
