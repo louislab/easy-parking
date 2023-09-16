@@ -10,7 +10,7 @@ export default {
         const map = ref(null)
 
         onMounted(async () => {
-            map.value = L.map('map').setView([22.302711, 114.177216], 11)
+            map.value = L.map('map', { zoomAnimation: false }).setView([22.302711, 114.177216], 11)
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> | <a href="https://data.gov.hk/" target="_blank" rel="noopener noreferrer">DATA.GOV.HK</a>',
                 maxZoom: 18,
