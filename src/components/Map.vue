@@ -10,8 +10,8 @@ export default {
         const map = ref(null)
 
         onMounted(async () => {
-            map.value = L.map('map', { zoomAnimation: false }).setView([22.302711, 114.177216], 11)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            map.value = await L.map('map', { zoomAnimation: false }).setView([22.302711, 114.177216], 11)
+            await L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> | <a href="https://data.gov.hk/" target="_blank" rel="noopener noreferrer">DATA.GOV.HK</a>',
                 maxZoom: 18,
             }).addTo(map.value)
@@ -59,9 +59,9 @@ export default {
             return hasTouchScreen
         }
 
-        function getGeoLocation() {
+        async function getGeoLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
+                navigator.geolocation.getCurrentPosition((position) => {
                     let lat = position.coords.latitude
                     let lng = position.coords.longitude
                     map.value.setView([lat, lng], 15)
@@ -92,14 +92,14 @@ export default {
             let vacancy
             http_info.open('GET', url_info)
             http_info.send()
-            http_info.onreadystatechange = function() {
+            http_info.onreadystatechange = () => {
                 if (http_info.readyState == XMLHttpRequest.DONE && http_info.status == 200) {
                     info = JSON.parse(http_info.responseText)
                     const http_vacancy = new XMLHttpRequest()
                     const url_vacancy = 'https://api.data.gov.hk/v1/carpark-info-vacancy?data=vacancy&lang=zh_TW'
                     http_vacancy.open('GET', url_vacancy)
                     http_vacancy.send()
-                    http_vacancy.onreadystatechange = function() {
+                    http_vacancy.onreadystatechange = () => {
                         if (http_vacancy.readyState == XMLHttpRequest.DONE && http_vacancy.status == 200) {
                             vacancy = JSON.parse(http_vacancy.responseText)
                             // pass all data to privateCarHandler
@@ -110,7 +110,7 @@ export default {
             }
         }
 
-        function privateCarHandler(info, vacancy) {
+        async function privateCarHandler(info, vacancy) {
             // remove all parking markers on map
             for (let i = 0; i < markers.length; i++) {
                 map.value.removeLayer(markers[i])
