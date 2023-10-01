@@ -8,6 +8,7 @@ export default {
     setup() {
 
         const map = ref(null)
+        const overlay = ref(false)
 
         onMounted(async () => {
             map.value = await L.map('map', { zoomAnimation: false }).setView([22.302711, 114.177216], 11)
@@ -17,10 +18,12 @@ export default {
             }).addTo(map.value)
             getGeoLocation()
             getParkingInfo()
-            setInterval(getParkingInfo, 60000)
+            map.value.on("locationfound", onLocationFound);
         })
         
         let markers = []
+        let myLocation = []
+        let myLocationMarker = []
 
         const parkingIconStyle = new L.Icon({
             iconUrl: './parking.png',
@@ -59,20 +62,30 @@ export default {
             return hasTouchScreen
         }
 
-        async function getGeoLocation() {
+        function getGeoLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    let lat = position.coords.latitude
-                    let lng = position.coords.longitude
-                    map.value.setView([lat, lng], 15)
-                    L.marker([lat, lng], {icon: pinIconStyle}).addTo(map.value)
-                        .bindPopup('你的位置')
-                    L.circle([lat, lng], 200).addTo(map.value)
-
-                })
+                map.value.locate({watch: true, enableHighAccuracy: true, maximumAge: 10000});
             } else {
-                alert('此瀏覽器不支援定位功能')
+                alert("此瀏覽器不支援定位功能");
             }
+        }
+
+        let init = true
+
+        function onLocationFound(e) {
+            const radius = e.accuracy / 2;
+            myLocation = [e.latlng.lat, e.latlng.lng]
+            for (let i = 0; i < myLocationMarker.length; i++) {
+                map.value.removeLayer(myLocationMarker[i])
+            }
+            myLocationMarker.push(L.marker(e.latlng, {icon: pinIconStyle}).addTo(map.value).bindPopup('你的位置'))
+            myLocationMarker.push(L.circle(e.latlng, radius).addTo(map.value))
+            init? map.value.setView(e.latlng, 16): null
+            init = false
+        }
+
+        function panToCurrentLocation() {
+            map.value.panTo(myLocation)
         }
 
         function genMapUrl(lat, lng) {
@@ -86,6 +99,7 @@ export default {
         }
 
         async function getParkingInfo() {
+            overlay.value = true
             const http_info = new XMLHttpRequest()
             const url_info = 'https://api.data.gov.hk/v1/carpark-info-vacancy?data=info&lang=zh_TW'
             let info
@@ -175,12 +189,15 @@ export default {
                     }
                 }
             }
+            overlay.value = false
         }
 
         return {
             map,
             getGeoLocation,
-            getParkingInfo
+            getParkingInfo,
+            panToCurrentLocation,
+            overlay
         }
     },
 }
@@ -188,6 +205,14 @@ export default {
 
 <template>
     <div id="map"></div>
+    <v-btn style="position: absolute; top: 10px; right: 10px; z-index: 400;" color="primary" @click="getParkingInfo">
+        Refresh
+        <v-icon end icon="mdi-refresh-circle"></v-icon>
+    </v-btn>
+    <v-btn style="position: absolute; bottom: 30px; right: 10px; z-index: 400;" color="primary" icon="mdi-crosshairs-gps" @click="panToCurrentLocation"></v-btn>
+    <v-overlay v-model="overlay" class="align-center justify-center">
+        <v-progress-circular color="primary" indeterminate size="64"></v-progress-circular>
+    </v-overlay>
 </template>
 
 <style>
