@@ -35,8 +35,8 @@ export default {
         const pinIconStyle = new L.Icon({
             iconUrl: './pin.png',
             iconSize: [30, 30],
-            iconAnchor: [15, 15],
-            popupAnchor: [0, -15]
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
         })
 
         function isMobileDevice() {
